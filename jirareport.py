@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import datetime
 from collections import defaultdict
+import calendar as cal
 
 load_dotenv()
 
@@ -17,7 +18,8 @@ daysInt = [day for day in range(dayOfWeekInteger.weekday() + 1)]
 daysJQL = list(reversed(daysInt))
 # output: [2, 1, 0]
 
-days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+days = [d for d in cal.day_name]
+# output: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 perUserInfo = {}
 perUserInfo = defaultdict(list)
 
