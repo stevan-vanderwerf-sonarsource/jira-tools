@@ -25,15 +25,19 @@ days = [d for d in cal.day_name]
 perUserInfo = {}
 perUserInfo = defaultdict(list)
 # output: defaultdict(<class 'list'>, {'user.1': [19, 1, 4, 1, 6, 3, 0, 15], 'user.2': [12, 6, 3, 2, 0, 0, 0, 11]})
+# output: defaultdict(<class 'list'>, {'user.1': ['13 *************', '2  **', '0  ', '3  ***', '5  *****'], 'user.2': ['13 *************', '0  ', '2  **', '3  ***', '5  *****']})
 
 def users(y):
+    #output: dict_keys(['user.1', 'user.2'])
     return Counter(y).keys()
 
 def jql_exec(jql):
     y = [issue.fields.assignee.name for issue in jira.search_issues(jql, maxResults=500)]
-    return y
+    #output: ['user.1', 'user.1', 'user.1', 'user.2', 'user.1']
+    return y    
 
 def output_format(distinct_user_list, jql_exec):
+    '''returns total number of tickets open, but also populates perUserInfo list'''
     numbs = 0
     for x in distinct_user_list:
         numb = jql_exec.count(x)
