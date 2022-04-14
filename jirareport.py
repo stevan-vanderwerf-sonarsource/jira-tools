@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 import datetime
 from collections import defaultdict
 import calendar as cal
+import pandas as pd
+from tabulate import tabulate
 
 load_dotenv()
 
@@ -22,49 +24,36 @@ days = [d for d in cal.day_name]
 # output: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 perUserInfo = {}
 perUserInfo = defaultdict(list)
+# output: defaultdict(<class 'list'>, {'user.1': [19, 1, 4, 1, 6, 3, 0, 15], 'user.2': [12, 6, 3, 2, 0, 0, 0, 11]})
 
 def users(y):
     return Counter(y).keys()
 
 def jql_exec(jql):
-    print('\nrunning query')
     y = [issue.fields.assignee.name for issue in jira.search_issues(jql, maxResults=500)]
     return y
 
 def output_format(distinct_user_list, jql_exec):
     numbs = 0
-    print('\n')
     for x in distinct_user_list:
         numb = jql_exec.count(x)
-        print(f"{x:20s} {jql_exec.count(x)*'*'}")
-        perUserInfo[x].append(jql_exec.count(x))
+        numb_padded = str(numb).ljust(2)
+        perUserInfo[x].append(numb_padded + ' ' + (numb * '*'))
         numbs += numb
     return numbs
-
-def longestNumRow(input):
-    m = [value for key,value in input.items()]
-    o = [max(list(x)) for x in list(zip(*m))]
-    return o
 
 jql = 'assignee is not EMPTY AND resolution = Unresolved ORDER BY assignee DESC'
 open_tickets = jql_exec(jql)
 distinct_user_list = users(open_tickets)
 totalOpenTickets = output_format(distinct_user_list, open_tickets)
-print(f"\n__{totalOpenTickets}__ total open tickets\n")
-
 
 for day in daysInt:
     dayJQL = daysJQL[day]
     jql = f"assignee is not EMPTY and assignee changed after startOfDay(-{dayJQL}d) and assignee changed before endOfDay(-{dayJQL}d)"
-    print(f"\n__{output_format(distinct_user_list, jql_exec(jql))}__ tickets taken on {days[day]}\n")
+    output_format(distinct_user_list, jql_exec(jql))
 
 jql = f"assignee is not EMPTY and assignee changed after startOfWeek() and assignee changed before endOfWeek()"
-print(f"\n__{output_format(distinct_user_list, jql_exec(jql))}__ tickets taken since Monday\n")
+output_format(distinct_user_list, jql_exec(jql))
 
-size = longestNumRow(perUserInfo)
-
-print('-' * 150)
-for k,v in perUserInfo.items():
-    asterix = [('*' * x) + ((size[i] - x) * ' ') for i,x in enumerate(v)]
-    print(f"{k:20s}: {' | '.join(map(str, asterix))} |")
-    print('-' * 150)
+df = pd.DataFrame(perUserInfo.values(),columns=['TotalTicketsHeld','Mon','Tue','Wed','TotalTicketsTakenSinceMon'],index=perUserInfo.keys()) #.sort_index()
+print(tabulate(df, headers=df.columns, tablefmt='fancy_grid'))
